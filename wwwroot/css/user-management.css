@@ -1,0 +1,26 @@
+.toolbar-btn {
+    min-width: 90px;
+}
+.toolbar-btn i {
+    margin-right: 6px;
+}
+.table th,
+.table td {
+    vertical-align: middle;
+}
+.strike {
+    text-decoration: line-through;
+    color: #bbb;
+}
+.sparkline {
+    height: 24px;
+}
+@media (max-width: 768px) {
+    .toolbar-btn {
+        min-width: 48px;
+        font-size: 0.9rem;
+    }
+    .table-responsive {
+        font-size: 0.95em;
+    }
+}

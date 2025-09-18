@@ -1,0 +1,92 @@
+
+@{
+    ViewBag.Title = "Login";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>@ViewBag.Title</title>
+    <link rel="stylesheet" href="~/css/auth-responsive.css" />
+</head>
+<body>
+  <div class="container auth-grid">
+    <section class="hide-sm">
+        <div class="brand"><span class="dot"></span><strong>YourApp</strong></div>
+        <h1>Welcome back</h1>
+        <p class="lead">Sign in to manage users and continue where you left off.</p>
+      </section>
+
+      <section class="card">
+        <div class="brand"><span class="dot"></span><strong>Login</strong></div>
+        <form id="loginForm" class="form" method="post" action="@Url.Action("Login","Account")" novalidate>@Html.AntiForgeryToken()
+            <div>
+                <label class="label" for="Email">Email</label>
+                <input class="input" type="email" id="Email" name="Email" required placeholder="you@example.com"/>
+                <div class="help" id="EmailHelp"></div>
+            </div>
+            <div>
+                <div class="meta">
+                  <label class="label" for="Password">Password</label>
+                  <span class="eye" id="togglePass" aria-label="Show/Hide password">👁️</span>
+                </div>
+                <input class="input" type="password" id="Password" name="Password" required minlength="6"/>
+                <div class="help" id="PasswordHelp"></div>
+            </div>
+            <button class="btn" id="btnLogin" type="submit">Sign in</button>
+            <div class="help">No account? <a href="@Url.Action("Register","Account")">Register</a></div>
+            <div id="loginMsg" class="help"></div>
+        </form>
+        <footer class="small">By continuing you agree to the Terms & Privacy Policy.</footer>
+      </section>
+  </div>
+
+  <script>
+    // Password toggle
+    document.getElementById('togglePass')?.addEventListener('click', function(){
+      const p = document.getElementById('Password');
+      if(!p) return;
+      p.type = p.type === 'password' ? 'text' : 'password';
+    });
+
+    const form = document.getElementById('loginForm');
+    form?.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const btn = document.getElementById('btnLogin');
+      const msg = document.getElementById('loginMsg');
+      msg.textContent = '';
+      btn.disabled = true;
+
+      const data = new FormData(form);
+      // AJAX login – expects JSON { success: bool, message?: string, redirectUrl?: string }
+      try{
+        const res = await fetch(form.action, {
+          method: 'POST',
+          headers: { 'X-Requested-With': 'XMLHttpRequest' },
+          body: data
+        });
+        const json = await res.json().catch(()=>null);
+        if(json && json.success){
+          msg.className = 'success'; msg.textContent = json.message || 'Login successful. Redirecting...';
+          window.location.href = json.redirectUrl || '@Url.Action("Index","UserManagement")';
+        }else{
+          // fallback: if server returned the full HTML (non-ajax), just navigate
+          if(res.headers.get('content-type')?.includes('text/html')){
+            const html = await res.text();
+            document.open(); document.write(html); document.close();
+            return;
+          }
+          msg.className='err';
+          msg.textContent = (json && json.message) ? json.message : 'Invalid credentials.';
+        }
+      }catch(err){
+        msg.className='err'; msg.textContent='Network error. Please try again.';
+      }finally{
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
